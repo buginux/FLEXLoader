@@ -47,6 +47,7 @@
 		void *handle = dlopen([dylibPath UTF8String], RTLD_NOW);
 		if (handle == NULL) {
 			char *error = dlerror();
+			NSLog(@"Load FLEXLoader dylib fail: %s", error);
 			return;
 		} 
 
