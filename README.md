@@ -23,3 +23,9 @@ FLEXLoader 已经提交 Cydia 市场审核，审核通过后可以直接从 Cydi
 ## 效果
 
 ![](http://7xqonv.com1.z0.glb.clouddn.com/inspect-third-party-app-using-flexloader-pic-2-1.png)
+
+## 公众号
+
+如果你对本项目有兴趣，可以关注我的公众号。
+
+![](http://7xqonv.com1.z0.glb.clouddn.com/offical_wechat_account_qrcode.jpg)
