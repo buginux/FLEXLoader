@@ -47,7 +47,7 @@ mkdir -p ${FAT_BIN_DIR}
 lipo -create bin/**/${BIN_NAME} -output ${FAT_BIN_DIR}/${BIN_NAME}
 
 echo "Copying dylib..."
-DYLIB_PATH="./layout/Library/Application\ Support/FLEXLoader/"
+DYLIB_PATH="./layout/Library/Application Support/FLEXLoader/"
 if [ ! -d "$DYLIB_PATH" ]; then
 	mkdir -p ./layout/Library/Application\ Support/FLEXLoader/
 fi
