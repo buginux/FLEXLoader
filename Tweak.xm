@@ -1,34 +1,59 @@
-/* How to Hook with Logos
-Hooks are written with syntax similar to that of an Objective-C @implementation.
-You don't need to #include <substrate.h>, it will be done automatically, as will
-the generation of a class list and an automatic constructor.
+#include <dlfcn.h>
 
-%hook ClassName
+@interface FLEXManager
 
-// Hooking a class method
-+ (id)sharedInstance {
-	return %orig;
++ (instancetype)sharedManager;
+- (void)showExplorer;
+
+@end
+
+
+@interface FLEXLoader: NSObject
+@end
+
+@implementation FLEXLoader
+
++ (instancetype)sharedInstance {
+	static dispatch_once_t onceToken;
+	static FLEXLoader *loader;
+	dispatch_once(&onceToken, ^{
+		loader = [[FLEXLoader alloc] init];
+	});	
+
+	return loader;
 }
 
-// Hooking an instance method with an argument.
-- (void)messageName:(int)argument {
-	%log; // Write a message about this call, including its class, name and arguments, to the system log.
-
-	%orig; // Call through to the original function with its original arguments.
-	%orig(nil); // Call through to the original function with a custom argument.
-
-	// If you use %orig(), you MUST supply all arguments (except for self and _cmd, the automatically generated ones.)
+- (void)show {
+	[[FLEXManager sharedManager] showExplorer];
 }
 
-// Hooking an instance method with no arguments.
-- (id)noArguments {
-	%log;
-	id awesome = %orig;
-	[awesome doSomethingElse];
+@end
 
-	return awesome;
+%ctor {
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+
+	NSDictionary *pref = [NSDictionary dictionaryWithContentsOfFile:@"/var/mobile/Library/Preferences/com.swiftyper.FLEXLoader.plist"];
+	NSString *dylibPath = @"/Library/Application Support/FLEXLoader/libFLEX.dylib";
+
+	if (![[NSFileManager defaultManager] fileExistsAtPath:dylibPath]) {
+		NSLog(@"FLEXLoader dylib file not found: %@", dylibPath);
+		return;
+	} 
+
+	NSString *keyPath = [NSString stringWithFormat:@"FLEXLoaderEnabled-%@", [[NSBundle mainBundle] bundleIdentifier];
+	if ([[pref objectForKey:keyPath] boolValue]) {
+		void *handle = dlopen([dylibPath UTF8STring], RTLD_NOW);
+		if (handle == NULL) {
+			char *error = dlerror();
+			NSLog(@"Load FLEXLoader dylib fail: %s", error);
+			return;
+		} 
+
+		[[NSNotification defaultCenter] addObserver:[FLEXLoader sharedInstance]
+										   selector:@selector(show)
+											   name:UIApplicationDidBecomeActiveNotification
+											 object:nil];
+	}	
+
+	[pool drain];
 }
-
-// Always make sure you clean up after yourself; Not doing so could have grave consequences!
-%end
-*/
