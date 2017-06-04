@@ -1,3 +1,5 @@
+#include <UIKit/UIKit.h>
+#include <objc/runtime.h>
 #include <dlfcn.h>
 
 @interface FLEXManager
@@ -24,7 +26,7 @@
 }
 
 - (void)show {
-	[[FLEXManager sharedManager] showExplorer];
+	[[objc_getClass("FLEXManager") sharedManager] showExplorer];
 }
 
 @end
@@ -32,24 +34,28 @@
 %ctor {
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
-	NSDictionary *pref = [NSDictionary dictionaryWithContentsOfFile:@"/var/mobile/Library/Preferences/com.swiftyper.FLEXLoader.plist"];
+	NSDictionary *pref = [NSDictionary dictionaryWithContentsOfFile:@"/var/mobile/Library/Preferences/com.swiftyper.flexloader.plist"];
 	NSString *dylibPath = @"/Library/Application Support/FLEXLoader/libFLEX.dylib";
 
+	NSLog(@"1. ---------------------------------");
 	if (![[NSFileManager defaultManager] fileExistsAtPath:dylibPath]) {
 		NSLog(@"FLEXLoader dylib file not found: %@", dylibPath);
 		return;
 	} 
 
-	NSString *keyPath = [NSString stringWithFormat:@"FLEXLoaderEnabled-%@", [[NSBundle mainBundle] bundleIdentifier];
+	NSLog(@"2. ---------------------------------");
+	NSString *keyPath = [NSString stringWithFormat:@"FLEXLoaderEnabled-%@", [[NSBundle mainBundle] bundleIdentifier]];
 	if ([[pref objectForKey:keyPath] boolValue]) {
-		void *handle = dlopen([dylibPath UTF8STring], RTLD_NOW);
+		NSLog(@"3. -----------------------------------");
+		void *handle = dlopen([dylibPath UTF8String], RTLD_NOW);
 		if (handle == NULL) {
 			char *error = dlerror();
 			NSLog(@"Load FLEXLoader dylib fail: %s", error);
 			return;
 		} 
 
-		[[NSNotification defaultCenter] addObserver:[FLEXLoader sharedInstance]
+		NSLog(@"4. -----------------------------------");
+		[[NSNotificationCenter defaultCenter] addObserver:[FLEXLoader sharedInstance]
 										   selector:@selector(show)
 											   name:UIApplicationDidBecomeActiveNotification
 											 object:nil];
